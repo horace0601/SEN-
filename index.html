@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEN 考試時間計算機 (四大考場版)</title>
+    <title>SEN 考試時間計算機 (Excel匯入版)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
@@ -42,15 +43,17 @@
         .btn-export { background-color: #9b59b6; margin-top: 15px; width: 100%; display: none; padding: 12px; font-size: 16px; font-weight: bold;}
         .btn-export:hover { background-color: #8e44ad; }
         
+        .upload-section { background-color: #e8f8f5; border: 2px dashed #1abc9c; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+        .upload-section input[type="file"] { display: none; }
+        .upload-label { background-color: #1abc9c; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; display: inline-block; transition: 0.3s;}
+        .upload-label:hover { background-color: #16a085; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
         th { background-color: #f8f9fa; }
         .checkbox-cell { text-align: center; }
         
-        #resultContainer {
-            margin-top: 30px; padding: 20px; background-color: #fff;
-            border: 2px dashed #1abc9c; border-radius: 8px; display: none;
-        }
+        #resultContainer { margin-top: 30px; padding: 20px; background-color: #fff; border: 2px dashed #1abc9c; border-radius: 8px; display: none; }
         
         /* 考場區塊樣式 */
         .room-section { margin-bottom: 40px; border: 2px solid #bdc3c7; border-radius: 8px; overflow: hidden; }
@@ -68,17 +71,15 @@
         .latest-time { font-weight: bold; color: #c0392b; font-size: 1.1em; }
         .duration-time { font-weight: bold; color: #2980b9; font-size: 1.1em; }
         .no-exam { padding: 20px; text-align: center; color: #7f8c8d; font-style: italic; }
-        
         .grand-total { background-color: #f1c40f; color: #2c3e50; padding: 20px; text-align: center; font-size: 1.5em; font-weight: bold; border-radius: 8px; margin-top: 30px; border: 2px solid #f39c12; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>SEN 考試時間計算機 (四大考場自動分流版)</h2>
+    <h2>SEN 考試時間計算機 (自動分流 + Excel匯入版)</h2>
     
     <h3>1. 考試科目設定</h3>
-    <p class="note">💡 提示：輸入各科的考試日期、年級及開考時間。若包含「英文卷三」或「聆聽」，系統會自動將該科排入聆聽室。</p>
     <table id="examTable">
         <thead>
             <tr>
@@ -99,23 +100,24 @@
                 <td><input type="time" class="ex-start" value="08:30"></td>
                 <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
             </tr>
-            <tr>
-                <td><input type="date" class="ex-date" required></td>
-                <td><select class="ex-grade"><option value="中二" selected>中二</option><option value="中一">中一</option><option value="中三">中三</option><option value="中四">中四</option><option value="中五">中五</option><option value="中六">中六</option></select></td>
-                <td><input type="text" class="ex-subject" value="地理"></td>
-                <td><input type="number" class="ex-duration" value="75" min="1"></td>
-                <td><input type="time" class="ex-start" value="10:30"></td>
-                <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
-            </tr>
         </tbody>
     </table>
     <button type="button" style="margin-top: 10px;" onclick="addExamRow()">+ 新增一科考試</button>
 
     <h3>2. SEN 考生名單設定</h3>
-    <p class="note">
-        💡 <span class="highlight-note">【語音輸入功能】</span>：若剔選「語音輸入」，且該生應考合資格科目，系統會自動分流至「語音輸入室」。<br>
-        💡 若科目結束時間相同，同科目的考生會自動合併在同一行顯示。
-    </p>
+    
+    <div class="upload-section">
+        <p style="margin-top: 0; margin-bottom: 10px; color: #16a085; font-weight: bold;">
+            📥 嫌手動輸入太麻煩？直接上傳 Excel 名單！
+        </p>
+        <p class="note" style="text-align: left; background: #fff; padding: 10px; border-radius: 5px;">
+            請確保你的 Google Sheet 下載為 Excel (.xlsx) 格式，並包含以下標題（第一行）：<br>
+            <strong>年級</strong> (例: 中一) | <strong>姓名</strong> | <strong>選修科</strong> (可留空) | <strong>加時</strong> (例: 25) | <strong>小休</strong> (填 Y 或 是) | <strong>語音輸入</strong> (填 Y 或 是)
+        </p>
+        <label for="excelUpload" class="upload-label">📁 選擇 Excel (.xlsx) 檔案</label>
+        <input type="file" id="excelUpload" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)">
+    </div>
+
     <table id="studentTable">
         <thead>
             <tr>
@@ -130,44 +132,111 @@
         </thead>
         <tbody id="studentBody">
             <tr>
-                <td><select class="stu-grade"><option value="中四" selected>中四</option><option value="中一">中一</option><option value="中二">中二</option><option value="中三">中三</option><option value="中五">中五</option><option value="中六">中六</option><option value="全部">全部(通用)</option></select></td>
-                <td><input type="text" class="stu-name" value="陳大文"></td>
+                <td><select class="stu-grade"><option value="中四">中四</option><option value="中一">中一</option><option value="中二">中二</option><option value="中三">中三</option><option value="中五">中五</option><option value="中六">中六</option><option value="全部">全部(通用)</option></select></td>
+                <td><input type="text" class="stu-name" placeholder="例: 陳大文"></td>
                 <td><input type="text" class="stu-subjects" value=""></td>
                 <td><input type="number" class="stu-extra" value="25" min="0"></td>
                 <td class="checkbox-cell"><input type="checkbox" class="stu-break" checked></td>
                 <td class="checkbox-cell"><input type="checkbox" class="stu-stt"></td>
                 <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
             </tr>
-            <tr>
-                <td><select class="stu-grade"><option value="中二" selected>中二</option><option value="中一">中一</option><option value="中三">中三</option><option value="中四">中四</option><option value="中五">中五</option><option value="中六">中六</option><option value="全部">全部(通用)</option></select></td>
-                <td><input type="text" class="stu-name" value="李小明"></td>
-                <td><input type="text" class="stu-subjects" value=""></td>
-                <td><input type="number" class="stu-extra" value="25" min="0"></td>
-                <td class="checkbox-cell"><input type="checkbox" class="stu-break" checked></td>
-                <td class="checkbox-cell"><input type="checkbox" class="stu-stt" checked></td>
-                <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
-            </tr>
         </tbody>
     </table>
-    <button type="button" style="margin-top: 10px;" onclick="addStudentRow()">+ 新增一位考生</button>
+    <button type="button" style="margin-top: 10px;" onclick="addStudentRow()">+ 手動新增一位考生</button>
     
     <button type="button" class="btn-success" onclick="calculateAll()">一鍵產生四大考場時間表</button>
 
     <div id="resultContainer">
         <h2 style="border-bottom: none; margin-bottom: 20px;">SEN 考場分佈總表</h2>
-        <div id="reportContent">
-            </div>
+        <div id="reportContent"></div>
     </div>
 
     <button type="button" id="exportBtn" class="btn-export" onclick="exportToImage()">📥 將總表匯出成圖片 (PNG)</button>
 </div>
 
 <script>
-    // 預設日期
     document.addEventListener("DOMContentLoaded", () => {
         const today = new Date().toISOString().split('T')[0];
         document.querySelectorAll('.ex-date').forEach(input => input.value = today);
     });
+
+    // 處理 Excel 上傳邏輯
+    function handleExcelUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // 將 Excel 轉換為 JSON 格式
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {defval: ""});
+                
+                if (jsonData.length === 0) {
+                    alert("檔案內沒有資料，請檢查！");
+                    return;
+                }
+                
+                populateStudentTable(jsonData);
+                alert(`✅ 成功匯入 ${jsonData.length} 位考生資料！`);
+                
+            } catch (error) {
+                alert("讀取檔案失敗，請確保是標準的 Excel (.xlsx) 或 CSV 檔案。");
+                console.error(error);
+            }
+            // 重置 input 以允許重複上傳同一個檔案
+            event.target.value = '';
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // 將 JSON 資料填入 HTML 表格
+    function populateStudentTable(data) {
+        const tbody = document.getElementById('studentBody');
+        tbody.innerHTML = ''; // 清空原本的資料
+
+        data.forEach(row => {
+            // 彈性讀取不同可能的欄位名稱
+            const grade = row['年級'] || row['Grade'] || '中一';
+            const name = row['姓名'] || row['考生姓名'] || row['Name'] || '未命名';
+            const subjects = row['選修科'] || row['應考科目'] || row['Subjects'] || '';
+            const extraStr = String(row['加時'] || row['加時(%)'] || row['加時%'] || '0').replace('%', '');
+            const extra = parseFloat(extraStr) || 0;
+            
+            // 判斷是否剔選 (包含 '是'、'Y'、'TRUE' 都當作勾選)
+            const breakStr = String(row['小休'] || row['中途小休'] || '').toUpperCase();
+            const needsBreak = breakStr.includes('是') || breakStr.includes('Y') || breakStr === 'TRUE';
+            
+            const sttStr = String(row['語音輸入'] || row['語音'] || '').toUpperCase();
+            const useSTT = sttStr.includes('是') || sttStr.includes('Y') || sttStr === 'TRUE';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <select class="stu-grade">
+                        <option value="中一" ${grade==='中一'?'selected':''}>中一</option>
+                        <option value="中二" ${grade==='中二'?'selected':''}>中二</option>
+                        <option value="中三" ${grade==='中三'?'selected':''}>中三</option>
+                        <option value="中四" ${grade==='中四'?'selected':''}>中四</option>
+                        <option value="中五" ${grade==='中五'?'selected':''}>中五</option>
+                        <option value="中六" ${grade==='中六'?'selected':''}>中六</option>
+                        <option value="全部" ${grade==='全部'?'selected':''}>全部(通用)</option>
+                    </select>
+                </td>
+                <td><input type="text" class="stu-name" value="${name}"></td>
+                <td><input type="text" class="stu-subjects" value="${subjects}"></td>
+                <td><input type="number" class="stu-extra" value="${extra}" min="0"></td>
+                <td class="checkbox-cell"><input type="checkbox" class="stu-break" ${needsBreak ? 'checked' : ''}></td>
+                <td class="checkbox-cell"><input type="checkbox" class="stu-stt" ${useSTT ? 'checked' : ''}></td>
+                <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
 
     function addExamRow() {
         const tbody = document.getElementById('examBody');
@@ -208,13 +277,11 @@
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     };
 
-    // 判斷是否符合語音輸入資格
     function isSTTEligible(subject, examGrade) {
         const juniorSTT = ['公經濟社', '生社', '中史', '地理', '歷史'];
         const seniorSTT = ['健社', '中史', '公民', '地理', '視藝', '歷史'];
         const isJunior = ['中一', '中二', '中三'].includes(examGrade);
         const isSenior = ['中四', '中五', '中六'].includes(examGrade);
-
         if (isJunior) return juniorSTT.some(kw => subject.includes(kw));
         if (isSenior) return seniorSTT.some(kw => subject.includes(kw));
         return false;
@@ -301,7 +368,6 @@
             });
         });
 
-        // 渲染報告
         const roomsToRender = [
             { id: '高中特別室', class: 'senior' },
             { id: '初中特別室', class: 'junior' },
@@ -311,15 +377,13 @@
 
         const reportContent = document.getElementById('reportContent');
         reportContent.innerHTML = '';
-        
-        let grandTotalMinutes = 0; // 記錄整個考試期的總分鐘數
+        let grandTotalMinutes = 0;
 
         roomsToRender.forEach(roomObj => {
             const roomName = roomObj.id;
             const roomRecords = allAssignments.filter(a => a.room === roomName);
             
-            let html = `<div class="room-section">`;
-            html += `<h3 class="room-title ${roomObj.class}">📍 ${roomName}</h3>`;
+            let html = `<div class="room-section"><h3 class="room-title ${roomObj.class}">📍 ${roomName}</h3>`;
 
             if (roomRecords.length === 0) {
                 html += `<div class="no-exam">本日無考生編排至此考場</div></div>`;
@@ -330,23 +394,17 @@
             const dates = [...new Set(roomRecords.map(r => r.date))].sort();
             
             dates.forEach(date => {
-                html += `<div class="date-group">`;
-                html += `<div class="date-header">📅 日期：${date}</div>`;
+                html += `<div class="date-group"><div class="date-header">📅 日期：${date}</div>`;
                 
                 let dayRecords = roomRecords.filter(r => r.date === date);
-                
-                // 排序：先按結束時間，再按年級，再按開始時間
                 dayRecords.sort((a, b) => {
                     if (a.endMins !== b.endMins) return a.endMins - b.endMins;
                     if (a.grade !== b.grade) return a.grade.localeCompare(b.grade);
                     return a.startMins - b.startMins;
                 });
 
-                // ⭐ 運算重疊區間以計算當日實際運作分鐘數 ⭐
                 let timeIntervals = dayRecords.map(r => ({ start: r.startMins, end: r.endMins }));
-                // 必須先按開始時間排序才能正確合併區間
                 timeIntervals.sort((a, b) => a.start - b.start);
-                
                 let mergedIntervals = [];
                 for (let interval of timeIntervals) {
                     if (mergedIntervals.length === 0) {
@@ -354,20 +412,16 @@
                     } else {
                         let lastMerged = mergedIntervals[mergedIntervals.length - 1];
                         if (interval.start <= lastMerged.end) {
-                            // 有重疊，延長結束時間
                             lastMerged.end = Math.max(lastMerged.end, interval.end);
                         } else {
-                            // 無重疊，新增獨立區間
                             mergedIntervals.push({ start: interval.start, end: interval.end });
                         }
                     }
                 }
                 
-                // 計算合併後的總分鐘數
                 let dailyRoomTotalMins = mergedIntervals.reduce((sum, intv) => sum + (intv.end - intv.start), 0);
-                grandTotalMinutes += dailyRoomTotalMins; // 累加至總時數
+                grandTotalMinutes += dailyRoomTotalMins;
 
-                // 合併同班同學顯示
                 let mergedRecords = [];
                 dayRecords.forEach(r => {
                     let existing = mergedRecords.find(m => m.grade === r.grade && m.subject === r.subject && m.endMins === r.endMins && m.breaksHtml === r.breaksHtml && m.startTime === r.startTime);
@@ -379,46 +433,25 @@
                     }
                 });
 
-                html += `<table>
-                    <thead><tr><th style="width:10%">年級</th><th style="width:20%">科目</th><th style="width:25%">考生</th><th style="width:10%">加時</th><th style="width:10%">開考時間</th><th style="width:10%">結束時間</th><th style="width:15%">中途小休</th></tr></thead>
-                    <tbody>`;
+                html += `<table><thead><tr><th style="width:10%">年級</th><th style="width:20%">科目</th><th style="width:25%">考生</th><th style="width:10%">加時</th><th style="width:10%">開考時間</th><th style="width:10%">結束時間</th><th style="width:15%">中途小休</th></tr></thead><tbody>`;
                 
                 let maxEndMins = 0;
-
                 mergedRecords.forEach(m => {
                     if (m.endMins > maxEndMins) maxEndMins = m.endMins;
                     const extraStr = m.extraPcts.length === 1 ? `+${m.extraPcts[0]}%` : `各異`;
-                    html += `<tr>
-                        <td><strong>${m.grade}</strong></td>
-                        <td>${m.subject}</td>
-                        <td><strong>${m.names.join(' , ')}</strong></td>
-                        <td>${extraStr}</td>
-                        <td>${m.startTime}</td>
-                        <td class="highlight-time">${m.finalEndTime}</td>
-                        <td>${m.breaksHtml}</td>
-                    </tr>`;
+                    html += `<tr><td><strong>${m.grade}</strong></td><td>${m.subject}</td><td><strong>${m.names.join(' , ')}</strong></td><td>${extraStr}</td><td>${m.startTime}</td><td class="highlight-time">${m.finalEndTime}</td><td>${m.breaksHtml}</td></tr>`;
                 });
                 
                 html += `</tbody></table>`;
-                
-                // 顯示最遲結束時間與當日總運作時數
-                html += `<div class="latest-time-container">
-                            <span class="duration-time">⏳ 當日考場運作時數：${dailyRoomTotalMins} 分鐘</span>
-                            <span class="latest-time">⏱ 當日最遲結束時間：${formatTime(maxEndMins)}</span>
-                         </div>`;
-                html += `</div>`; 
+                html += `<div class="latest-time-container"><span class="duration-time">⏳ 當日考場運作時數：${dailyRoomTotalMins} 分鐘</span><span class="latest-time">⏱ 當日最遲結束時間：${formatTime(maxEndMins)}</span></div></div>`; 
             });
 
             html += `</div>`; 
             reportContent.innerHTML += html;
         });
 
-        // ⭐ 在所有考場報表的最下方，顯示總運作時數 ⭐
         if (grandTotalMinutes > 0) {
-            let grandHtml = `<div class="grand-total">
-                🌟 整個考試期（所有特別考場）總運作時數：${grandTotalMinutes} 分鐘
-            </div>`;
-            reportContent.innerHTML += grandHtml;
+            reportContent.innerHTML += `<div class="grand-total">🌟 整個考試期（所有特別考場）總運作時數：${grandTotalMinutes} 分鐘</div>`;
         }
 
         document.getElementById('resultContainer').style.display = 'block';
