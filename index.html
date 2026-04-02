@@ -3,38 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEN 考試時間計算機 (Excel匯入版)</title>
+    <title>SEN 考試時間計算機 (雙 Excel 匯入版)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body {
-            font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            padding: 30px 10px;
-        }
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 1200px;
-            width: 100%;
-        }
+        body { font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background-color: #f4f7f6; color: #333; display: flex; justify-content: center; padding: 30px 10px; }
+        .container { background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 1250px; width: 100%; }
         h2 { text-align: center; color: #2c3e50; margin-top: 0; }
         h3 { border-bottom: 2px solid #3498db; padding-bottom: 5px; color: #2980b9; margin-top: 30px;}
         .note { font-size: 0.85em; color: #7f8c8d; margin-bottom: 10px; line-height: 1.5; }
-        .highlight-note { color: #e67e22; font-weight: bold; }
         
-        input[type="time"], input[type="number"], input[type="text"], input[type="date"], select {
-            width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit;
-        }
-        button {
-            padding: 8px 12px; background-color: #3498db; color: white; border: none; border-radius: 5px;
-            font-size: 14px; cursor: pointer; transition: 0.3s;
-        }
+        input[type="time"], input[type="number"], input[type="text"], input[type="date"], select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        button { padding: 8px 12px; background-color: #3498db; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; transition: 0.3s; }
         button:hover { background-color: #2980b9; }
         .btn-danger { background-color: #e74c3c; padding: 5px 10px; font-size: 13px; }
         .btn-danger:hover { background-color: #c0392b; }
@@ -43,10 +23,15 @@
         .btn-export { background-color: #9b59b6; margin-top: 15px; width: 100%; display: none; padding: 12px; font-size: 16px; font-weight: bold;}
         .btn-export:hover { background-color: #8e44ad; }
         
-        .upload-section { background-color: #e8f8f5; border: 2px dashed #1abc9c; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+        .upload-section { padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+        .upload-section.exam { background-color: #eaf2f8; border: 2px dashed #3498db; }
+        .upload-section.student { background-color: #e8f8f5; border: 2px dashed #1abc9c; }
         .upload-section input[type="file"] { display: none; }
-        .upload-label { background-color: #1abc9c; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; display: inline-block; transition: 0.3s;}
-        .upload-label:hover { background-color: #16a085; }
+        .upload-label { color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; display: inline-block; transition: 0.3s;}
+        .upload-label.exam-btn { background-color: #3498db; }
+        .upload-label.exam-btn:hover { background-color: #2980b9; }
+        .upload-label.student-btn { background-color: #1abc9c; }
+        .upload-label.student-btn:hover { background-color: #16a085; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
@@ -54,15 +39,12 @@
         .checkbox-cell { text-align: center; }
         
         #resultContainer { margin-top: 30px; padding: 20px; background-color: #fff; border: 2px dashed #1abc9c; border-radius: 8px; display: none; }
-        
-        /* 考場區塊樣式 */
         .room-section { margin-bottom: 40px; border: 2px solid #bdc3c7; border-radius: 8px; overflow: hidden; }
         .room-title { background-color: #34495e; color: white; padding: 15px; margin: 0; font-size: 1.3em; text-align: center; letter-spacing: 2px; }
         .room-title.stt { background-color: #8e44ad; }
         .room-title.listening { background-color: #d35400; }
         .room-title.senior { background-color: #2980b9; }
         .room-title.junior { background-color: #27ae60; }
-        
         .date-group { padding: 15px; }
         .date-header { background-color: #ecf0f1; color: #2c3e50; padding: 8px 12px; border-left: 5px solid #34495e; font-weight: bold; margin-bottom: 10px; font-size: 1.1em;}
         .break-list { margin: 0; padding-left: 20px; text-align: left; font-size: 0.85em; color: #555; }
@@ -77,9 +59,20 @@
 <body>
 
 <div class="container">
-    <h2>SEN 考試時間計算機 (自動分流 + Excel匯入版)</h2>
+    <h2>SEN 考試時間計算機 (星號聆聽分流版)</h2>
     
     <h3>1. 考試科目設定</h3>
+    <div class="upload-section exam">
+        <p style="margin-top: 0; margin-bottom: 10px; color: #2980b9; font-weight: bold;">📄 一鍵匯入《考試時間表》(Excel / CSV)</p>
+        <p class="note" style="text-align: left; background: #fff; padding: 10px; border-radius: 5px;">
+            <strong>工作表要求：</strong>系統會自動讀取每一個工作表 (Sheet)。工作表名稱需包含年級 (如「中一級」)。<br>
+            <strong>聆聽科標記：</strong>若為聆聽考試，請在科目名稱前加上 <code>*</code> (例如：*中國語文三)，系統會自動分配至聆聽室。<br>
+            <strong>欄位順序：</strong>1. <strong>日期</strong> | 2. <strong>時間</strong> (如 8:30-9:15) | 3. <strong>科目</strong> (如 English 1 (莉))
+        </p>
+        <label for="examExcelUpload" class="upload-label exam-btn" id="examLabel">📁 上傳 考試時間表</label>
+        <input type="file" id="examExcelUpload" accept=".xlsx, .xls, .csv" onchange="handleExamExcelUpload(event)">
+    </div>
+
     <table id="examTable">
         <thead>
             <tr>
@@ -91,56 +84,34 @@
                 <th style="width: 10%;">操作</th>
             </tr>
         </thead>
-        <tbody id="examBody">
-            <tr>
-                <td><input type="date" class="ex-date" required></td>
-                <td><select class="ex-grade"><option value="中四" selected>中四</option><option value="中一">中一</option><option value="中二">中二</option><option value="中三">中三</option><option value="中五">中五</option><option value="中六">中六</option></select></td>
-                <td><input type="text" class="ex-subject" value="英文卷三"></td>
-                <td><input type="number" class="ex-duration" value="120" min="1"></td>
-                <td><input type="time" class="ex-start" value="08:30"></td>
-                <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
-            </tr>
-        </tbody>
+        <tbody id="examBody"></tbody>
     </table>
-    <button type="button" style="margin-top: 10px;" onclick="addExamRow()">+ 新增一科考試</button>
+    <button type="button" style="margin-top: 10px;" onclick="addExamRow()">+ 手動新增一科考試</button>
 
     <h3>2. SEN 考生名單設定</h3>
-    
-    <div class="upload-section">
-        <p style="margin-top: 0; margin-bottom: 10px; color: #16a085; font-weight: bold;">
-            📥 嫌手動輸入太麻煩？直接上傳 Excel 名單！
-        </p>
+    <div class="upload-section student">
+        <p style="margin-top: 0; margin-bottom: 10px; color: #16a085; font-weight: bold;">📥 一鍵上傳《特別室考生名單》(Excel / CSV)</p>
         <p class="note" style="text-align: left; background: #fff; padding: 10px; border-radius: 5px;">
-            請確保你的 Google Sheet 下載為 Excel (.xlsx) 格式，並包含以下標題（第一行）：<br>
-            <strong>年級</strong> (例: 中一) | <strong>姓名</strong> | <strong>選修科</strong> (可留空) | <strong>加時</strong> (例: 25) | <strong>小休</strong> (填 Y 或 是) | <strong>語音輸入</strong> (填 Y 或 是)
+            <strong>嚴格按照以下 8 欄順序讀取 (不管表頭寫什麼)：</strong><br>
+            第1欄: <strong>班別/年級</strong> | 第2欄: <strong>姓名</strong> | 第3欄: <strong>加時</strong> (如 25, 不加時) | 第4欄: <strong>選修1</strong> | 第5欄: <strong>選修2</strong> | 第6欄: <strong>選修3</strong> | 第7欄: <strong>小休</strong> (Y/是) | 第8欄: <strong>語音輸入科目</strong> (如 中史,地理)
         </p>
-        <label for="excelUpload" class="upload-label">📁 選擇 Excel (.xlsx) 檔案</label>
-        <input type="file" id="excelUpload" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)">
+        <label for="excelUpload" class="upload-label student-btn" id="studentLabel">📁 上傳 特別室名單</label>
+        <input type="file" id="excelUpload" accept=".xlsx, .xls, .csv" onchange="handleStudentExcelUpload(event)">
     </div>
 
     <table id="studentTable">
         <thead>
             <tr>
-                <th style="width: 9%;">年級</th>
-                <th style="width: 15%;">考生姓名</th>
-                <th style="width: 20%;">選修科 (留空=全考)</th>
-                <th style="width: 10%;">加時(%)</th>
-                <th style="width: 8%;">小休</th>
-                <th style="width: 10%;">語音輸入</th>
-                <th style="width: 8%;">操作</th>
+                <th style="width: 8%;">年級</th>
+                <th style="width: 13%;">考生姓名</th>
+                <th style="width: 25%;">應考選修科 (高中)</th>
+                <th style="width: 9%;">加時(%)</th>
+                <th style="width: 7%;">小休</th>
+                <th style="width: 28%;">指定語音科目 (如:中史,地理)</th>
+                <th style="width: 10%;">操作</th>
             </tr>
         </thead>
-        <tbody id="studentBody">
-            <tr>
-                <td><select class="stu-grade"><option value="中四">中四</option><option value="中一">中一</option><option value="中二">中二</option><option value="中三">中三</option><option value="中五">中五</option><option value="中六">中六</option><option value="全部">全部(通用)</option></select></td>
-                <td><input type="text" class="stu-name" placeholder="例: 陳大文"></td>
-                <td><input type="text" class="stu-subjects" value=""></td>
-                <td><input type="number" class="stu-extra" value="25" min="0"></td>
-                <td class="checkbox-cell"><input type="checkbox" class="stu-break" checked></td>
-                <td class="checkbox-cell"><input type="checkbox" class="stu-stt"></td>
-                <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
-            </tr>
-        </tbody>
+        <tbody id="studentBody"></tbody>
     </table>
     <button type="button" style="margin-top: 10px;" onclick="addStudentRow()">+ 手動新增一位考生</button>
     
@@ -155,83 +126,119 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const today = new Date().toISOString().split('T')[0];
-        document.querySelectorAll('.ex-date').forEach(input => input.value = today);
-    });
-
-    // 處理 Excel 上傳邏輯
-    function handleExcelUpload(event) {
+    // ======== 1. 考試時間表 Excel 解析 ========
+    function handleExamExcelUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
+        const label = document.getElementById('examLabel');
+        const originalText = label.innerText;
+        label.innerText = "⏳ 正在解析考試時間表...";
+
         reader.onload = function(e) {
             try {
                 const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                
-                // 將 Excel 轉換為 JSON 格式
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, {defval: ""});
-                
-                if (jsonData.length === 0) {
-                    alert("檔案內沒有資料，請檢查！");
-                    return;
+                const workbook = XLSX.read(data, {type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd'});
+                let parsedExams = [];
+
+                workbook.SheetNames.forEach(sheetName => {
+                    let gradeMatch = sheetName.match(/中[一二三四五六]/);
+                    let sheetGrade = gradeMatch ? gradeMatch[0] : "中一";
+
+                    const worksheet = workbook.Sheets[sheetName];
+                    const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1, raw: false});
+                    
+                    for (let i = 0; i < rawData.length; i++) {
+                        let row = rawData[i];
+                        if (!row || row.length < 3) continue;
+
+                        let dateStr = String(row[0] || '').trim();
+                        let timeStr = String(row[1] || '').trim();
+                        let subjectStr = String(row[2] || '').trim();
+
+                        if (dateStr.includes('日期') || timeStr.includes('時間')) continue;
+
+                        // 判斷該行有沒有包含星號 *
+                        let isAsterisk = subjectStr.includes('*') || timeStr.includes('*');
+
+                        let examDate = dateStr;
+                        if (examDate.match(/^\d{1,2}\/\d{1,2}$/)) {
+                            let parts = examDate.split('/');
+                            let d = parts[0].padStart(2, '0');
+                            let m = parts[1].padStart(2, '0');
+                            let y = new Date().getFullYear();
+                            if (parseInt(m) < 8) y += 1; 
+                            examDate = `${y}-${m}-${d}`;
+                        } else if (examDate.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
+                            let parts = examDate.split('-');
+                            examDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                        }
+
+                        let timeMatch = timeStr.match(/(\d{1,2}:\d{2})\s*[-–—~至]\s*(\d{1,2}:\d{2})/);
+                        if (timeMatch && examDate) {
+                            let startTime = timeMatch[1];
+                            let endTime = timeMatch[2];
+                            
+                            let [sh, sm] = startTime.split(':').map(Number);
+                            let [eh, em] = endTime.split(':').map(Number);
+                            
+                            let duration = (eh * 60 + em) - (sh * 60 + sm);
+                            if (duration <= 0) duration += 24 * 60; 
+                            startTime = `${String(sh).padStart(2, '0')}:${String(sm).padStart(2, '0')}`;
+                            
+                            let subject = subjectStr;
+                            subject = subject.replace(/\([^)]*[\u4e00-\u9fa5]+[^)]*\)/g, '').trim();
+                            subject = subject.replace(/\*/g, '').trim(); // 先清除原本的 *
+                            subject = subject.replace(/\s+/g, ' ');
+
+                            // 如果原本帶有星號，確保將星號加在最前面
+                            if (isAsterisk) {
+                                subject = '*' + subject;
+                            }
+
+                            parsedExams.push({
+                                date: examDate, grade: sheetGrade, subject: subject,
+                                duration: duration, startTime: startTime
+                            });
+                        }
+                    }
+                });
+
+                if (parsedExams.length > 0) {
+                    populateExamTable(parsedExams);
+                    alert(`✅ 成功自動匯入 ${parsedExams.length} 節考試！`);
+                } else {
+                    alert("未能識別考試資料，請確保欄位依序為「日期、時間、科目」。");
                 }
-                
-                populateStudentTable(jsonData);
-                alert(`✅ 成功匯入 ${jsonData.length} 位考生資料！`);
-                
-            } catch (error) {
-                alert("讀取檔案失敗，請確保是標準的 Excel (.xlsx) 或 CSV 檔案。");
-                console.error(error);
+            } catch (err) {
+                console.error(err);
+                alert("解析檔案時發生錯誤。");
             }
-            // 重置 input 以允許重複上傳同一個檔案
+            label.innerText = originalText;
             event.target.value = '';
         };
         reader.readAsArrayBuffer(file);
     }
 
-    // 將 JSON 資料填入 HTML 表格
-    function populateStudentTable(data) {
-        const tbody = document.getElementById('studentBody');
-        tbody.innerHTML = ''; // 清空原本的資料
-
-        data.forEach(row => {
-            // 彈性讀取不同可能的欄位名稱
-            const grade = row['年級'] || row['Grade'] || '中一';
-            const name = row['姓名'] || row['考生姓名'] || row['Name'] || '未命名';
-            const subjects = row['選修科'] || row['應考科目'] || row['Subjects'] || '';
-            const extraStr = String(row['加時'] || row['加時(%)'] || row['加時%'] || '0').replace('%', '');
-            const extra = parseFloat(extraStr) || 0;
-            
-            // 判斷是否剔選 (包含 '是'、'Y'、'TRUE' 都當作勾選)
-            const breakStr = String(row['小休'] || row['中途小休'] || '').toUpperCase();
-            const needsBreak = breakStr.includes('是') || breakStr.includes('Y') || breakStr === 'TRUE';
-            
-            const sttStr = String(row['語音輸入'] || row['語音'] || '').toUpperCase();
-            const useSTT = sttStr.includes('是') || sttStr.includes('Y') || sttStr === 'TRUE';
-
+    function populateExamTable(exams) {
+        const tbody = document.getElementById('examBody');
+        tbody.innerHTML = '';
+        exams.forEach(exam => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>
-                    <select class="stu-grade">
-                        <option value="中一" ${grade==='中一'?'selected':''}>中一</option>
-                        <option value="中二" ${grade==='中二'?'selected':''}>中二</option>
-                        <option value="中三" ${grade==='中三'?'selected':''}>中三</option>
-                        <option value="中四" ${grade==='中四'?'selected':''}>中四</option>
-                        <option value="中五" ${grade==='中五'?'selected':''}>中五</option>
-                        <option value="中六" ${grade==='中六'?'selected':''}>中六</option>
-                        <option value="全部" ${grade==='全部'?'selected':''}>全部(通用)</option>
-                    </select>
-                </td>
-                <td><input type="text" class="stu-name" value="${name}"></td>
-                <td><input type="text" class="stu-subjects" value="${subjects}"></td>
-                <td><input type="number" class="stu-extra" value="${extra}" min="0"></td>
-                <td class="checkbox-cell"><input type="checkbox" class="stu-break" ${needsBreak ? 'checked' : ''}></td>
-                <td class="checkbox-cell"><input type="checkbox" class="stu-stt" ${useSTT ? 'checked' : ''}></td>
+                <td><input type="date" class="ex-date" value="${exam.date}" required></td>
+                <td><select class="ex-grade">
+                    <option value="中一" ${exam.grade==='中一'?'selected':''}>中一</option>
+                    <option value="中二" ${exam.grade==='中二'?'selected':''}>中二</option>
+                    <option value="中三" ${exam.grade==='中三'?'selected':''}>中三</option>
+                    <option value="中四" ${exam.grade==='中四'?'selected':''}>中四</option>
+                    <option value="中五" ${exam.grade==='中五'?'selected':''}>中五</option>
+                    <option value="中六" ${exam.grade==='中六'?'selected':''}>中六</option>
+                </select></td>
+                <td><input type="text" class="ex-subject" value="${exam.subject}"></td>
+                <td><input type="number" class="ex-duration" value="${exam.duration}" min="1"></td>
+                <td><input type="time" class="ex-start" value="${exam.startTime}"></td>
                 <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
             `;
             tbody.appendChild(tr);
@@ -245,7 +252,7 @@
         tr.innerHTML = `
             <td><input type="date" class="ex-date" value="${today}" required></td>
             <td><select class="ex-grade"><option value="中一">中一</option><option value="中二">中二</option><option value="中三">中三</option><option value="中四">中四</option><option value="中五">中五</option><option value="中六">中六</option></select></td>
-            <td><input type="text" class="ex-subject" placeholder="例: 中文卷一"></td>
+            <td><input type="text" class="ex-subject" placeholder="例: *中文卷三"></td>
             <td><input type="number" class="ex-duration" value="90" min="1"></td>
             <td><input type="time" class="ex-start" value="08:30"></td>
             <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
@@ -253,16 +260,121 @@
         tbody.appendChild(tr);
     }
 
+    // ======== 2. 特別室考生 Excel 解析 ========
+    function parseClassToGrade(cls) {
+        const c = String(cls).trim().toUpperCase();
+        if (c.startsWith('1')) return '中一';
+        if (c.startsWith('2')) return '中二';
+        if (c.startsWith('3')) return '中三';
+        if (c.startsWith('4')) return '中四';
+        if (c.startsWith('5')) return '中五';
+        if (c.startsWith('6')) return '中六';
+        if (['中一','中二','中三','中四','中五','中六'].includes(c)) return c;
+        return '中一'; 
+    }
+
+    function handleStudentExcelUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        const label = document.getElementById('studentLabel');
+        const originalText = label.innerText;
+        label.innerText = "⏳ 讀取名單中...";
+
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+                if (rawData.length <= 1) { alert("檔案內沒有資料！"); return; }
+                
+                const dataRows = rawData.slice(1);
+                populateStudentTable(dataRows);
+                alert(`✅ 成功匯入 ${dataRows.length} 位考生資料！`);
+            } catch (error) {
+                alert("讀取檔案失敗，請確保是標準的 Excel 或 CSV 檔案。");
+                console.error(error);
+            }
+            label.innerText = originalText;
+            event.target.value = ''; 
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function populateStudentTable(dataRows) {
+        const tbody = document.getElementById('studentBody');
+        tbody.innerHTML = ''; 
+
+        dataRows.forEach(row => {
+            if (row.length === 0 || (!row[0] && !row[1])) return; 
+
+            const gradeStr = row[0] || '';
+            const name = row[1] || '未命名';
+            const extraStr = row[2] || '';
+            const elec1 = row[3] || '';
+            const elec2 = row[4] || '';
+            const elec3 = row[5] || '';
+            const breakStr = row[6] || '';
+            const sttStr = row[7] || '';
+
+            const grade = parseClassToGrade(gradeStr);
+            
+            let extra = 0;
+            let eStr = String(extraStr).trim();
+            if (eStr !== '' && !['不加時', '0', '---', '無', '0%'].includes(eStr) && !eStr.includes('不加')) {
+                let match = eStr.match(/(\d+(\.\d+)?)/);
+                if (match) {
+                    let val = parseFloat(match[1]);
+                    if (val > 0 && val <= 1) {
+                        extra = Math.round(val * 100);
+                    } else {
+                        extra = val; 
+                    }
+                } else if (eStr.includes('加時')) {
+                    extra = 25; 
+                }
+            }
+
+            const electives = [elec1, elec2, elec3].filter(item => String(item).trim() !== '').join(', ');
+
+            const breakRaw = String(breakStr).toUpperCase();
+            const needsBreak = breakRaw.includes('Y') || breakRaw.includes('是') || breakRaw === 'TRUE' || breakRaw.includes('需要') || breakRaw.includes('V');
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <select class="stu-grade">
+                        <option value="中一" ${grade==='中一'?'selected':''}>中一</option>
+                        <option value="中二" ${grade==='中二'?'selected':''}>中二</option>
+                        <option value="中三" ${grade==='中三'?'selected':''}>中三</option>
+                        <option value="中四" ${grade==='中四'?'selected':''}>中四</option>
+                        <option value="中五" ${grade==='中五'?'selected':''}>中五</option>
+                        <option value="中六" ${grade==='中六'?'selected':''}>中六</option>
+                    </select>
+                </td>
+                <td><input type="text" class="stu-name" value="${name}"></td>
+                <td><input type="text" class="stu-subjects" value="${electives}"></td>
+                <td><input type="number" class="stu-extra" value="${extra}" min="0"></td>
+                <td class="checkbox-cell"><input type="checkbox" class="stu-break" ${needsBreak ? 'checked' : ''}></td>
+                <td><input type="text" class="stu-stt" value="${sttStr}"></td>
+                <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
     function addStudentRow() {
         const tbody = document.getElementById('studentBody');
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><select class="stu-grade"><option value="中一">中一</option><option value="中二">中二</option><option value="中三">中三</option><option value="中四">中四</option><option value="中五">中五</option><option value="中六">中六</option><option value="全部">全部(通用)</option></select></td>
+            <td><select class="stu-grade"><option value="中四">中四</option><option value="中一">中一</option><option value="中二">中二</option><option value="中三">中三</option><option value="中五">中五</option><option value="中六">中六</option></select></td>
             <td><input type="text" class="stu-name" placeholder="例: 張三"></td>
-            <td><input type="text" class="stu-subjects" placeholder="關鍵字(逗號分隔)"></td>
+            <td><input type="text" class="stu-subjects" placeholder="選修科 (逗號分隔)"></td>
             <td><input type="number" class="stu-extra" value="25" min="0"></td>
             <td class="checkbox-cell"><input type="checkbox" class="stu-break" checked></td>
-            <td class="checkbox-cell"><input type="checkbox" class="stu-stt"></td>
+            <td><input type="text" class="stu-stt" placeholder="語音科目"></td>
             <td><button type="button" class="btn-danger" onclick="removeRow(this)">刪除</button></td>
         `;
         tbody.appendChild(tr);
@@ -277,26 +389,20 @@
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     };
 
-    function isSTTEligible(subject, examGrade) {
-        const juniorSTT = ['公經濟社', '生社', '中史', '地理', '歷史'];
-        const seniorSTT = ['健社', '中史', '公民', '地理', '視藝', '歷史'];
-        const isJunior = ['中一', '中二', '中三'].includes(examGrade);
-        const isSenior = ['中四', '中五', '中六'].includes(examGrade);
-        if (isJunior) return juniorSTT.some(kw => subject.includes(kw));
-        if (isSenior) return seniorSTT.some(kw => subject.includes(kw));
-        return false;
-    }
-
+    // ======== 3. 核心派位與排表邏輯 ========
     function calculateAll() {
+        const compulsorySubjects = ['中文（一）', '中文（二）', '中國語文', 'English 1', 'English 2', 'English 3', 'Mathematics 1', 'Mathematics 2', '公經社', '生社', '公民'];
+        const vaKeywords = ['視藝', '視覺藝術', 'VA', 'VISUAL ARTS'];
+
         const examRows = document.getElementById('examBody').getElementsByTagName('tr');
         let exams = [];
         for (let row of examRows) {
             const date = row.querySelector('.ex-date').value;
             const grade = row.querySelector('.ex-grade').value;
-            const subject = row.querySelector('.ex-subject').value || '未命名科目';
+            const subject = row.querySelector('.ex-subject').value.trim() || '未命名科目';
             const duration = parseInt(row.querySelector('.ex-duration').value);
             const startTime = row.querySelector('.ex-start').value;
-            if (!date || !duration || !startTime) { alert("請確保所有考試資料已填寫！"); return; }
+            if (!date || !duration || !startTime) { alert("請確保所有考試資料已填寫完整！"); return; }
             exams.push({ date, grade, subject, duration, startTime, startMins: parseTime(startTime) });
         }
 
@@ -304,13 +410,15 @@
         let students = [];
         for (let row of studentRows) {
             const subjectsStr = row.querySelector('.stu-subjects').value.trim();
+            const sttStr = row.querySelector('.stu-stt').value.trim();
+            
             students.push({
                 grade: row.querySelector('.stu-grade').value,
-                name: row.querySelector('.stu-name').value || '未命名考生',
+                name: row.querySelector('.stu-name').value.trim() || '未命名考生',
                 subjectKeywords: subjectsStr.split(/[,，]/).map(s => s.trim()).filter(s => s !== ""),
+                sttKeywords: sttStr.split(/[,，]/).map(s => s.trim()).filter(s => s !== ""),
                 extraPct: parseFloat(row.querySelector('.stu-extra').value) || 0,
-                needsBreak: row.querySelector('.stu-break').checked,
-                useSTT: row.querySelector('.stu-stt').checked
+                needsBreak: row.querySelector('.stu-break').checked
             });
         }
 
@@ -320,14 +428,52 @@
 
         exams.forEach(exam => {
             students.forEach(stu => {
-                if (stu.grade !== exam.grade && stu.grade !== '全部') return;
-                if (stu.subjectKeywords.length > 0 && !stu.subjectKeywords.some(kw => exam.subject.includes(kw))) return;
+                // 1. 年級篩選
+                if (stu.grade !== exam.grade) return;
 
-                const extraTime = Math.ceil(exam.duration * (stu.extraPct / 100));
+                // 2. 應考資格篩選
+                const isSenior = ['中四', '中五', '中六'].includes(stu.grade);
+                if (isSenior) {
+                    const isCompulsory = compulsorySubjects.some(c => exam.subject.includes(c));
+                    const isElective = stu.subjectKeywords.some(kw => exam.subject.includes(kw));
+                    if (!isCompulsory && !isElective) return; 
+                }
+
+                // 3. 判斷考場 (包含星號偵測)
+                let room = '';
+                // 若科目名稱包含 '*' 符號，或為特定的英文名稱，強制派位至聆聽室
+                if (exam.subject.includes('*') || exam.subject.includes('英文卷三') || exam.subject.includes('聆聽') || exam.subject.includes('English 3') || exam.subject.includes('English 5')) {
+                    room = '聆聽室';
+                } else if (stu.sttKeywords.length > 0 && stu.sttKeywords.some(kw => exam.subject.includes(kw))) {
+                    room = '語音輸入室';
+                } else if (!isSenior) {
+                    room = '初中特別室';
+                } else {
+                    room = '高中特別室';
+                }
+
+                // 4. 計算加時 (特別處理視藝科)
+                const isVA = vaKeywords.some(kw => exam.subject.toUpperCase().includes(kw));
+                let extraTime = 0;
+                let extraStrDisplay = '';
+
+                if (isVA && stu.extraPct > 0) {
+                    if (room === '語音輸入室') {
+                        extraTime = 22;
+                    } else {
+                        extraTime = 17;
+                    }
+                    extraStrDisplay = `+${extraTime}分(VA)`;
+                } else {
+                    extraTime = Math.ceil(exam.duration * (stu.extraPct / 100));
+                    extraStrDisplay = stu.extraPct > 0 ? `+${stu.extraPct}%` : `-`;
+                }
+
                 let remainingWorkTime = exam.duration + extraTime;
                 let currentTime = exam.startMins;
                 let breaksHtml = "";
 
+                // 5. 計算小休
                 if (stu.needsBreak && exam.duration >= 90) {
                     let breakCount = 1;
                     breaksHtml += `<ul class="break-list">`;
@@ -348,22 +494,11 @@
                 const endMins = currentTime;
                 const finalEndTime = formatTime(endMins);
 
-                let room = '';
-                if (exam.subject.includes('英文卷三') || exam.subject.includes('聆聽')) {
-                    room = '聆聽室';
-                } else if (stu.useSTT && isSTTEligible(exam.subject, exam.grade)) {
-                    room = '語音輸入室';
-                } else if (['中一', '中二', '中三'].includes(exam.grade)) {
-                    room = '初中特別室';
-                } else {
-                    room = '高中特別室';
-                }
-
                 allAssignments.push({
                     room, date: exam.date, grade: exam.grade, subject: exam.subject,
                     startMins: exam.startMins, startTime: exam.startTime,
                     endMins, finalEndTime,
-                    stuName: stu.name, extraPct: stu.extraPct, breaksHtml
+                    stuName: stu.name, extraStrDisplay, breaksHtml
                 });
             });
         });
@@ -418,7 +553,6 @@
                         }
                     }
                 }
-                
                 let dailyRoomTotalMins = mergedIntervals.reduce((sum, intv) => sum + (intv.end - intv.start), 0);
                 grandTotalMinutes += dailyRoomTotalMins;
 
@@ -427,9 +561,9 @@
                     let existing = mergedRecords.find(m => m.grade === r.grade && m.subject === r.subject && m.endMins === r.endMins && m.breaksHtml === r.breaksHtml && m.startTime === r.startTime);
                     if (existing) {
                         existing.names.push(r.stuName);
-                        if (!existing.extraPcts.includes(r.extraPct)) existing.extraPcts.push(r.extraPct);
+                        if (!existing.extraDisplays.includes(r.extraStrDisplay)) existing.extraDisplays.push(r.extraStrDisplay);
                     } else {
-                        mergedRecords.push({ ...r, names: [r.stuName], extraPcts: [r.extraPct] });
+                        mergedRecords.push({ ...r, names: [r.stuName], extraDisplays: [r.extraStrDisplay] });
                     }
                 });
 
@@ -438,8 +572,8 @@
                 let maxEndMins = 0;
                 mergedRecords.forEach(m => {
                     if (m.endMins > maxEndMins) maxEndMins = m.endMins;
-                    const extraStr = m.extraPcts.length === 1 ? `+${m.extraPcts[0]}%` : `各異`;
-                    html += `<tr><td><strong>${m.grade}</strong></td><td>${m.subject}</td><td><strong>${m.names.join(' , ')}</strong></td><td>${extraStr}</td><td>${m.startTime}</td><td class="highlight-time">${m.finalEndTime}</td><td>${m.breaksHtml}</td></tr>`;
+                    const finalExtraStr = m.extraDisplays.length === 1 ? m.extraDisplays[0] : m.extraDisplays.join(' / ');
+                    html += `<tr><td><strong>${m.grade}</strong></td><td>${m.subject}</td><td><strong>${m.names.join(' , ')}</strong></td><td>${finalExtraStr}</td><td>${m.startTime}</td><td class="highlight-time">${m.finalEndTime}</td><td>${m.breaksHtml}</td></tr>`;
                 });
                 
                 html += `</tbody></table>`;
