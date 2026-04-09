@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEN 考試時間計算機 (雙 Excel 匯入版)</title>
+    <title>SEN 考試時間計算機</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -59,11 +59,11 @@
 <body>
 
 <div class="container">
-    <h2>SEN 考試時間計算機 (聆聽特規版)</h2>
+    <h2>SEN 考試時間計算機 </h2>
     
     <h3>1. 考試科目設定</h3>
     <div class="upload-section exam">
-        <p style="margin-top: 0; margin-bottom: 10px; color: #2980b9; font-weight: bold;">📄 一鍵匯入《考試時間表》(Excel / CSV)</p>
+        <p style="margin-top: 0; margin-bottom: 10px; color: #2980b9; font-weight: bold;">📄 匯入《考試時間表》(Excel / CSV)</p>
         <p class="note" style="text-align: left; background: #fff; padding: 10px; border-radius: 5px;">
             <strong>工作表要求：</strong>系統會自動讀取每一個工作表 (Sheet)。工作表名稱需包含年級 (如「中一級」)。<br>
             <strong>聆聽科標記：</strong>若為聆聽考試，請在科目名稱前加上 <code>*</code> (例如：*中國語文三)，系統會自動分配至聆聽室。<br>
@@ -90,7 +90,7 @@
 
     <h3>2. SEN 考生名單設定</h3>
     <div class="upload-section student">
-        <p style="margin-top: 0; margin-bottom: 10px; color: #16a085; font-weight: bold;">📥 一鍵上傳《特別室考生名單》(Excel / CSV)</p>
+        <p style="margin-top: 0; margin-bottom: 10px; color: #16a085; font-weight: bold;">📥 上傳《特別室考生名單》(Excel / CSV)</p>
         <p class="note" style="text-align: left; background: #fff; padding: 10px; border-radius: 5px;">
             <strong>嚴格按照以下 9 欄順序讀取 (不管表頭寫什麼)：</strong><br>
             第1欄: <strong>班別/年級</strong> | 第2欄: <strong>姓名</strong> | 第3欄: <strong>加時</strong> (如 25, 不加時) | 第4欄: <strong>選修1</strong> | 第5欄: <strong>選修2</strong> | 第6欄: <strong>選修3</strong> | 第7欄: <strong>小休</strong> (Y/是) | 第8欄: <strong>語音輸入科目</strong> (如 中史,地理) | 第9欄: <strong>只考聆聽</strong> (Y/是)
