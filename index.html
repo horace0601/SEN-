@@ -445,7 +445,7 @@
                 }
 
                 let room = '';
-                if (exam.subject.includes('*') || exam.subject.includes('英文卷三') || exam.subject.includes('聆聽') || exam.subject.includes('English 3') || exam.subject.includes('English 5')) {
+                if (exam.subject.includes('*') || exam.subject.includes('英文卷三') || exam.subject.includes('聆聽') || exam.subject.includes('english 3') || exam.subject.includes('English 3')) {
                     room = '聆聽室';
                 } else if (stu.sttKeywords.length > 0 && stu.sttKeywords.some(kw => exam.subject.includes(kw))) {
                     room = '語音輸入室';
